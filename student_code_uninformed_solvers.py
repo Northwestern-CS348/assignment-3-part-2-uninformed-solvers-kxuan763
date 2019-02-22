@@ -58,6 +58,7 @@ class SolverBFS(UninformedSolver):
         super().__init__(gameMaster, victoryCondition)
 
     q = Queue()
+    moves = 0
 
     def solveOneStep(self):
         """
@@ -96,6 +97,34 @@ class SolverBFS(UninformedSolver):
                 self.q.put(c)
 
         # de-queue an unvisited state
-        m = self.q.get()
+        c = self.q.get()
+
+        # construct path from current node to root
+        rover = self.currentState
+        home_path = []
+        while rover.requiredMovable:
+            home_path.append(rover.requiredMovable)
+            rover = rover.parent
+
+        # construct path from c to root (and flip it)
+        rover = c
+        child_path = []
+        while rover.requiredMovable:
+            child_path.append(rover.requiredMovable)
+            rover = rover.parent
+        child_path = reversed(child_path)
+
+        # follow paths
+        for s in home_path:
+            self.gm.reverseMove(s)
+
+        for s in child_path:
+            self.gm.makeMove(s)
+
+        # visit and mark
+        self.currentState = c
+        self.visited[c] = True
+        self.moves +=1
+        self.currentState.depth = self.moves
 
         return False
