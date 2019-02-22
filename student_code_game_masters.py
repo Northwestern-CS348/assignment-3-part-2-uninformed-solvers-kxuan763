@@ -93,13 +93,8 @@ class TowerOfHanoiGame(GameMaster):
         self.kb.kb_retract(old_peg)
         self.kb.kb_retract(old_top)
 
-        # assert new on and top
-        new_peg = parse_input("fact: (on %s %s)" % (disk, f_peg))
-        new_top = parse_input("fact: (top %s %s)" % (disk, f_peg))
-        self.kb.kb_assert(new_peg)
-        self.kb.kb_assert(new_top)
-
-        # update empties
+        # update secondary stack facts
+        # cases:
         old_empty = parse_input("fact: (empty %s)" % f_peg)
         new_empty = parse_input("fact: (empty %s)" % i_peg)
         old_bottom = parse_input("fact: (bottom %s %s)" % (disk, i_peg))
@@ -114,29 +109,34 @@ class TowerOfHanoiGame(GameMaster):
         # it wasn't empty
         else:
             old_top_new = parse_input("fact: (top ?disk %s)" % f_peg)
+            f_top = (self.kb.kb_ask(old_top_new).list_of_bindings[0])[0].bindings[0].constant.element
             # the top of the new peg isn't the top anymore
             self.kb.kb_retract(old_top_new)
             # the moving disk is now on top of that disk
-            f_top = (self.kb.kb_ask(old_top_new).list_of_bindings[0])[0].bindings[0].constant.element
             new_stack = parse_input("fact: (onTop %s %s)" % (disk, f_top))
             self.kb.kb_assert(new_stack)
 
         # if disk was bottom of initial peg
         if self.kb.kb_ask(old_bottom):
-            # initial peg is empty now
-            self.kb.kb_assert(new_empty)
             # disk is no longer bottom
             self.kb.kb_retract(old_bottom)
+            # initial peg is empty now
+            self.kb.kb_assert(new_empty)
         # the disk was on top of another disk before
         else:
             old_stack = parse_input("fact: (onTop %s ?disk)" % disk)
+            n_top = (self.kb.kb_ask(old_stack).list_of_bindings[0])[0].bindings[0].constant.element
             # it is no longer on top of that disk
             self.kb.kb_retract(old_stack)
             # that disk is now the top
-            i_top = (self.kb.kb_ask(old_stack).list_of_bindings[0])[0].bindings[0].constant.element
-            new_top_old = parse_input("fact: (top %s %s)" % (i_top, i_peg))
+            new_top_old = parse_input("fact: (top %s %s)" % (n_top, i_peg))
             self.kb.kb_assert(new_top_old)
-        pass
+
+        # assert new on and top
+        new_peg = parse_input("fact: (on %s %s)" % (disk, f_peg))
+        self.kb.kb_assert(new_peg)
+        new_top = parse_input("fact: (top %s %s)" % (disk, f_peg))
+        self.kb.kb_assert(new_top)
 
     def reverseMove(self, movable_statement):
         """
