@@ -28,13 +28,8 @@ fact: (location tile3 2 3)
 fact: (location tile2 3 3)
 
 rule: ((location ?tile1 ?x 2)(location ?tile2 ?x ?y))->(adjacent ?tile1 ?tile2)
-
-
 rule: ((location ?tile1 ?x ?y)(location ?tile2 ?x 2))->(adjacent ?tile1 ?tile2)
-
-
 rule: ((location ?tile1 2 ?y)(location ?tile2 ?x ?y))->(adjacent ?tile1 ?tile2)
-
 rule: ((location ?tile1 ?x ?y)(location ?tile2 2 ?y))->(adjacent ?tile1 ?tile2)
 
 
