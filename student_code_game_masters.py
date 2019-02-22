@@ -53,7 +53,6 @@ class TowerOfHanoiGame(GameMaster):
             for i in disks_on:
                 disk = (int(i[0].bindings[0].constant.element[4]))
                 peg2.append(disk)
-
         if self.kb.kb_ask(ask3):
             disks_on = self.kb.kb_ask(ask3).list_of_bindings
             for i in disks_on:
@@ -86,53 +85,36 @@ class TowerOfHanoiGame(GameMaster):
         i_peg = movable_statement.terms[1]
         f_peg = movable_statement.terms[2]
 
-        # all cases
-        # retract old on and top
+        # retract initial peg facts
+        i_onTop = parse_input("fact: (onTop %s ?d)" % disk)
+        # if the disk was on top of another disk, the other disk is now the new top of peg_i,
+        # and they're no longer stacked
+        if self.kb.kb_ask(i_onTop):
+            n_top = (self.kb.kb_ask(i_onTop).list_of_bindings[0])[0].bindings[0].constant.element
+            self.kb.kb_assert(parse_input("fact: (top %s %s)" % (n_top, i_peg)))
+            self.kb.kb_retract(parse_input("fact: (onTop %s %s)" % (disk, n_top)))
+        # otherwise, peg_i is now empty
+        else:
+            self.kb.kb_assert(parse_input("fact: (empty %s)" % i_peg))
+
+        # if peg f has a top, it is no longer the top, and disk is stacked on it
+        f_top = parse_input("fact: (top ?d %s)" % f_peg)
+        if self.kb.kb_ask(f_top):
+            f_top_old = (self.kb.kb_ask(f_top).list_of_bindings[0])[0].bindings[0].constant.element
+            self.kb.kb_retract(parse_input("fact: (top %s %s)" % (f_top_old, f_peg)))
+            self.kb.kb_assert(parse_input("fact: (onTop %s %s)" % (disk, f_top_old)))
+        # if peg f is empty, it is no longer empty
+        if self.kb.kb_ask(parse_input("fact: (empty %s)" % f_peg)):
+            pass
+            self.kb.kb_retract(parse_input("fact: (empty %s)" % f_peg))
+
+        # disk is no longer top of or on peg i
         old_peg = parse_input("fact: (on %s %s)" % (disk, i_peg))
-        old_top = parse_input("fact: (top %s %s)" % (disk, i_peg))
         self.kb.kb_retract(old_peg)
+        old_top = parse_input("fact: (top %s %s)" % (disk, i_peg))
         self.kb.kb_retract(old_top)
 
-        # update secondary stack facts
-        # cases:
-        old_empty = parse_input("fact: (empty %s)" % f_peg)
-        new_empty = parse_input("fact: (empty %s)" % i_peg)
-        old_bottom = parse_input("fact: (bottom %s %s)" % (disk, i_peg))
-        new_bottom = parse_input("fact: (bottom %s %s)" % (disk, f_peg))
-
-        # if destination peg was empty
-        if self.kb.kb_ask(old_empty):
-            # it's not empty anymore
-            self.kb.kb_retract(old_empty)
-            # disk is now bottom
-            self.kb.kb_assert(new_bottom)
-        # it wasn't empty
-        else:
-            old_top_new = parse_input("fact: (top ?disk %s)" % f_peg)
-            f_top = (self.kb.kb_ask(old_top_new).list_of_bindings[0])[0].bindings[0].constant.element
-            # the top of the new peg isn't the top anymore
-            self.kb.kb_retract(old_top_new)
-            # the moving disk is now on top of that disk
-            new_stack = parse_input("fact: (onTop %s %s)" % (disk, f_top))
-            self.kb.kb_assert(new_stack)
-
-        # if disk was bottom of initial peg
-        if self.kb.kb_ask(old_bottom):
-            # disk is no longer bottom
-            self.kb.kb_retract(old_bottom)
-            # initial peg is empty now
-            self.kb.kb_assert(new_empty)
-        # the disk was on top of another disk before
-        else:
-            old_stack = parse_input("fact: (onTop %s ?disk)" % disk)
-            n_top = (self.kb.kb_ask(old_stack).list_of_bindings[0])[0].bindings[0].constant.element
-            # it is no longer on top of that disk
-            self.kb.kb_retract(old_stack)
-            # that disk is now the top
-            new_top_old = parse_input("fact: (top %s %s)" % (n_top, i_peg))
-            self.kb.kb_assert(new_top_old)
-
-        # assert new on and top
+        # disk is now on top of and on peg_f
         new_peg = parse_input("fact: (on %s %s)" % (disk, f_peg))
         self.kb.kb_assert(new_peg)
         new_top = parse_input("fact: (top %s %s)" % (disk, f_peg))

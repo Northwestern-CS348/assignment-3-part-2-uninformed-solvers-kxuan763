@@ -37,11 +37,8 @@ fact: (bigger disk5 disk4)
 rule: ((bigger ?disk2 ?disk1)(bigger ?disk3 ?disk2))-> (bigger ?disk3 ?disk1)
 
 fact: (top disk1 peg3)
-fact: (bottom disk1 peg3)
 fact: (top disk2 peg2)
-fact: (bottom disk2 peg2)
 fact: (top disk3 peg1)
-fact; (bottom disk5 peg1)
 
 rule: ((top ?disk ?peg_i)(empty ?peg_f))-> (movable ?disk ?peg_i ?peg_f)
 rule: ((top ?disk1 ?peg_i)(top ?disk2 ?peg_f)(bigger ?disk2 ?disk1))-> (movable ?disk1 ?peg_i ?peg_f)

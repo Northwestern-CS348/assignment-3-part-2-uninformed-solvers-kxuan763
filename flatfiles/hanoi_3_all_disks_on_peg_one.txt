@@ -29,7 +29,6 @@ fact: (empty peg2)
 fact: (empty peg3)
 
 fact: (top disk1 peg1)
-fact: (bottom disk3 peg1)
 
 fact: (onTop disk1 disk2)
 fact: (onTop disk2 disk3)

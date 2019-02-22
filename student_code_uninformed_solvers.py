@@ -42,7 +42,9 @@ class SolverDFS(UninformedSolver):
                     # mark visited
                     self.visited[c] = True
                     # go
+                    d = self.currentState.depth + 1
                     self.currentState = c
+                    self.currentState.depth = d
                     self.gm.makeMove(c.requiredMovable)
                     break
         # backtrack
@@ -76,7 +78,6 @@ class SolverBFS(UninformedSolver):
         if self.currentState.state == self.victoryCondition:
             return True
 
-        # Add all possible moves that can be taken from the given state to the states list of children
         # Iterate through all moves
         if self.gm.getMovables():
             # initialize children
@@ -97,34 +98,35 @@ class SolverBFS(UninformedSolver):
                 self.q.put(c)
 
         # de-queue an unvisited state
-        c = self.q.get()
+        while not self.q.empty():
+            kid = self.q.get()
+            if kid not in self.visited:
+                # construct path from current node to root
+                rover = self.currentState
+                home_path = []
+                while rover.requiredMovable:
+                    home_path.append(rover.requiredMovable)
+                    rover = rover.parent
 
-        # construct path from current node to root
-        rover = self.currentState
-        home_path = []
-        while rover.requiredMovable:
-            home_path.append(rover.requiredMovable)
-            rover = rover.parent
+                # construct path from c to root (then flip it)
+                rover = kid
+                child_path = []
+                while rover.requiredMovable:
+                    child_path.append(rover.requiredMovable)
+                    rover = rover.parent
+                child_path = reversed(child_path)
 
-        # construct path from c to root (and flip it)
-        rover = c
-        child_path = []
-        while rover.requiredMovable:
-            child_path.append(rover.requiredMovable)
-            rover = rover.parent
-        child_path = reversed(child_path)
+                # follow paths
+                for s in home_path:
+                    self.gm.reverseMove(s)
+                for s in child_path:
+                    self.gm.makeMove(s)
 
-        # follow paths
-        for s in home_path:
-            self.gm.reverseMove(s)
-
-        for s in child_path:
-            self.gm.makeMove(s)
-
-        # visit and mark
-        self.currentState = c
-        self.visited[c] = True
-        self.moves +=1
-        self.currentState.depth = self.moves
+                # visit and mark
+                self.currentState = kid
+                self.visited[kid] = True
+                self.moves += 1
+                self.currentState.depth = self.moves
+                break
 
         return False
