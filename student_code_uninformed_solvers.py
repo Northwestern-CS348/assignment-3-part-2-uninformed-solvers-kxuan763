@@ -2,6 +2,7 @@
 from solver import *
 from queue import *
 
+
 class SolverDFS(UninformedSolver):
     def __init__(self, gameMaster, victoryCondition):
         super().__init__(gameMaster, victoryCondition)
@@ -35,7 +36,6 @@ class SolverDFS(UninformedSolver):
                 child.parent = self.currentState
                 # come back to base node
                 self.gm.reverseMove(m)
-
             for c in self.currentState.children:
                 # if we find a new game state, go there
                 if c not in self.visited:
@@ -76,6 +76,9 @@ class SolverBFS(UninformedSolver):
             True if the desired solution state is reached, False otherwise
         """
         if self.currentState.state == self.victoryCondition:
+            if not self.q.empty():
+                while not self.q.empty():
+                    self.q.get()
             return True
 
         # Iterate through all moves
